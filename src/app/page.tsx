@@ -1,178 +1,195 @@
 "use client"
-import { useState } from 'react';
+import React, { useState, ChangeEvent, useEffect, FormEvent } from 'react';
+import { FormValues } from '@/app/hpp/models/FormValues';
+import { usePriceCalculations } from '@/app/hpp/hooks/usePriceCalculations';
+import TableResult from '@/app/hpp/components/TableResult';
 
-interface Animal {
-  number: string;
-  animalCode: string;
-  liveWeight: string;
-  sex: string;
-  details: string;
-}
+export default function PriceCalculator() {
+  const [values, setValues] = useState<FormValues>({
+    nilaiTukarUSD: 16285.25,
+    hargaSapiCIF: 0,
+    beratSapi: 0,
+    beaMasuk: 0,
+    pph: 0,
+    biayaImport: 0,
+    lamaPemeliharaan: 0,
+    biayaPemeliharaan: 0,
+    pertambahanBerat: 0,
+    tingkatBungaBank: 0,
+    biayaOverHead: 0,
+    biayaMarketing: 0,
+    hargaJualSapi: 0,
+  });
 
-export default function Home() {
-  const [customerName, setCustomerName] = useState<string>('');
-  const [address, setAddress] = useState<string>('');
-  const [date, setDate] = useState<string>(new Date().toISOString().substr(0, 10)); // Current date
-  const [animalData, setAnimalData] = useState<Animal[]>([
-    { number: '', animalCode: '', liveWeight: '', sex: '', details: '' },
-  ]);
+  const [results, setResults] = useState<{ [key: string]: string | number }>()
+  const [isSubmitted, setSubmitted] = useState<boolean>(false)
+  const [isLoading, setIsloading] = useState<boolean>(false)
+  const calculations = usePriceCalculations(values);
 
-  const handleAnimalChange = (index: number, field: keyof Animal, value: string) => {
-    const updatedAnimalData = [...animalData];
-    updatedAnimalData[index][field] = value;
-    setAnimalData(updatedAnimalData);
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // Parse the value to a number, ignoring leading and trailing spaces
+    let parsedValue: number = parseFloat(value);
+
+    // Check if the parsed value is a valid number and not NaN
+    if (!isNaN(parsedValue)) {
+      setValues({
+        ...values,
+        [name]: parsedValue,
+      });
+    } else {
+      setValues({
+        ...values,
+        [name]: 0,
+      });
+    }
   };
 
-  const handleAddAnimal = () => {
-    setAnimalData([...animalData, { number: '', animalCode: '', liveWeight: '', sex: '', details: '' }]);
-  };
-
-  const handleRemoveAnimal = (index: number) => {
-    const updatedAnimalData = [...animalData];
-    updatedAnimalData.splice(index, 1);
-    setAnimalData(updatedAnimalData);
-  };
-
-  const getTotalWeight = (): number => {
-    return animalData.reduce((total, animal) => {
-      return total + parseFloat(animal.liveWeight || '0');
-    }, 0);
-  };
-
-  const getTotalAnimals = (): number => {
-    return animalData.length;
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Here, you can submit the form data to your backend or handle it as needed
-    console.log('Form data submitted:', { customerName, address, date, animalData });
+    setIsloading(true);
+    setTimeout(() => {
+      const data = {
+        "Nilai Tukar USD. Ke Rp": values.nilaiTukarUSD,
+        "Nilai Beli Sapi CIF": calculations.nilaiBeliSapiCIF(),
+        "Bea Masuk": calculations.beaMasuk(),
+        "PPH Impor": calculations.pphImpor(),
+        "Biaya-Biaya Import": values.biayaImport,
+        "Jumlah": calculations.jumlah(),
+        "Harga Sapi Di Kandang (Rp./Kg)": calculations.hargaSapiDiKandang(),
+        "Biaya Pemeliharaan (Rp/ekor)": calculations.hargaPemeliharaan(),
+        "Biaya Over Head": calculations.biayaOverhead(),
+        "Biaya Marketing": values.biayaMarketing,
+        "Biaya Bunga": calculations.biayaBunga(),
+        "Total Biaya": calculations.totalBiaya(),
+        "Berat Akhir Sapi Potong (Kg.)": calculations.beratAkhirSapiPotong(),
+        "HPP (Rp/Kg)": calculations.hpp(),
+        "Nilai Jual Sapi Potong": calculations.nilaiJualSapiPotong(),
+        "Nett Profit Rp./Ekor": calculations.nettProfitPerEkor(),
+        "Prosentase Nett Profit": calculations.presentaseNettProfit(),
+        "Nett Profit Rp./Kg": calculations.nettProfitPerKilo()
+      };
+      setResults(data)
+      setSubmitted(true)
+      setIsloading(false)
+    }, 3000)
   };
+
+  useEffect(() => {
+  }, [])
+
+  const Forms = () => {
+    return <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md">
+      <h2 className="text-2xl font-semibold mb-4">Aplikasi Proyeksi Harga Pokok</h2>
+      <div className="flex flex-wrap mb-4">
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="nilaiTukarUSD" className="block text-gray-700 font-bold">Nilai Tukar USD (Rp)</label>
+          <input type="number" name="nilaiTukarUSD" id="nilaiTukarUSD" value={values.nilaiTukarUSD} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="hargaSapiCIF" className="block text-gray-700 font-bold">Harga Sapi (CIF)</label>
+          <input type="number" name="hargaSapiCIF" id="hargaSapiCIF" value={values.hargaSapiCIF} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="beratSapi" className="block text-gray-700 font-bold">Berat Sapi (Kg.)</label>
+          <input type="number" name="beratSapi" id="beratSapi" value={values.beratSapi} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+      </div>
+      <div className="flex flex-wrap mb-4">
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="beaMasuk" className="block text-gray-700 font-bold">Bea Masuk (%)</label>
+          <input type="number" name="beaMasuk" id="beaMasuk" value={values.beaMasuk} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="pph" className="block text-gray-700 font-bold">PPH (%)</label>
+          <input type="number" name="pph" id="pph" value={values.pph} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+      </div>
+      <div className="flex flex-wrap mb-4">
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="biayaImport" className="block text-gray-700 font-bold">Biaya Import (Rp./Ekor)</label>
+          <input type="number" name="biayaImport" id="biayaImport" value={values.biayaImport} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="lamaPemeliharaan" className="block text-gray-700 font-bold">Lama Pemeliharaan (hari)</label>
+          <input type="number" name="lamaPemeliharaan" id="lamaPemeliharaan" value={values.lamaPemeliharaan} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+      </div>
+      <div className="flex flex-wrap mb-4">
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="biayaPemeliharaan" className="block text-gray-700 font-bold">Biaya Pemeliharaan (Rp/ekor/hari)</label>
+          <input type="number" name="biayaPemeliharaan" id="biayaPemeliharaan" value={values.biayaPemeliharaan} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="pertambahanBerat" className="block text-gray-700 font-bold">Pertambahan Berat Badan</label>
+          <input type="number" name="pertambahanBerat" id="pertambahanBerat" value={values.pertambahanBerat} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+      </div>
+      <div className="flex flex-wrap mb-4">
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="tingkatBungaBank" className="block text-gray-700 font-bold">Tingkat Bunga Bank (% /Tahun)</label>
+          <input type="number" name="tingkatBungaBank" id="tingkatBungaBank" value={values.tingkatBungaBank} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+      </div>
+      <div className="flex flex-wrap mb-4">
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="biayaOverHead" className="block text-gray-700 font-bold">Biaya Over Head (Rp./Ekor)</label>
+          <input type="number" name="biayaOverHead" id="biayaOverHead" value={values.biayaOverHead} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="biayaMarketing" className="block text-gray-700 font-bold">Biaya Marketing (Rp./Ekor)</label>
+          <input type="number" name="biayaMarketing" id="biayaMarketing" value={values.biayaMarketing} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+      </div>
+      <div className="flex flex-wrap mb-4">
+        <div className="w-full px-2 mb-4 md:mb-0 my-4">
+          <label htmlFor="hargaJualSapi" className="block text-gray-700 font-bold">Harga Jual Sapi (Rp./Kg)</label>
+          <input type="number" name="hargaJualSapi" id="hargaJualSapi" value={values.hargaJualSapi} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+        </div>
+      </div>
+      <LoadingButton onClick={() => { handleSubmit }} loading={isLoading} text='Kalkulasi' />
+    </form>
+  }
+
+  const Results = () => {
+    return <div className="bg-white p-8 rounded shadow-md flex flex-col gap-8">
+      <h2 className="text-2xl font-semibold mb-4">Aplikasi Proyeksi Harga Pokok</h2>
+      <TableResult data={results} />
+      <LoadingButton onClick={() => {
+        setIsloading(false);
+        setSubmitted(false);
+        setResults(undefined)
+      }} loading={isLoading} text='Reset' />
+    </div>
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 text-black">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md">
-        <h2 className="text-2xl font-semibold mb-4">Submit Cows Weight</h2>
-        <div className="mb-4">
-          <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">
-            Customer Name
-          </label>
-          <input
-            type="text"
-            id="customerName"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            className="mt-1 block w-full h-16 border border-black rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm px-4"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-            Address
-          </label>
-          <input
-            type="text"
-            id="address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 block w-full h-16 border border-black rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm px-4"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-            Date
-          </label>
-          <input
-            type="date"
-            id="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="mt-1 block w-full h-16 border border-black rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm px-4"
-            required
-          />
-        </div>
-        <div className="mb-4 text-black">
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th>Animal Code</th>
-                <th>Live Weight (kg)</th>
-                <th>Sex</th>
-                <th>Details</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {animalData.map((animal, index) => (
-                <tr key={index}>
-                  <td>
-                    <input
-                      type="text"
-                      value={animal.animalCode}
-                      onChange={(e) => handleAnimalChange(index, 'animalCode', e.target.value)}
-                      className="w-full h-16 px-4 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      value={animal.liveWeight}
-                      onChange={(e) => handleAnimalChange(index, 'liveWeight', e.target.value)}
-                      className="w-full h-16 px-4 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={animal.sex}
-                      onChange={(e) => handleAnimalChange(index, 'sex', e.target.value)}
-                      className="w-full h-16 px-4 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={animal.details}
-                      onChange={(e) => handleAnimalChange(index, 'details', e.target.value)}
-                      className="w-full h-16 px-4 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    />
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAnimal(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {animalData.length === 0 && (
-            <p className="text-gray-500 text-sm mt-2">No animals added yet.</p>
-          )}
-          <button
-            type="button"
-            onClick={handleAddAnimal}
-            className="mt-4 bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300 focus:outline-none focus:bg-gray-300"
-          >
-            Add Animal
-          </button>
-        </div>
-        <div className="mb-4">
-          <p>Total Animals: {getTotalAnimals()}</p>
-          <p>Total Weight: {getTotalWeight()} kg</p>
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 focus:outline-none focus:bg-green-600"
-        >
-          Submit
-        </button>
-      </form>
+    <div className="min-h-screen flex flex-col gap-8 items-center justify-center bg-gray-100 text-black p-2 md:p-8">
+      {!isSubmitted && Forms()}
+      {isSubmitted && Results()}
     </div>
   );
 }
+
+const LoadingButton: React.FC<{ onClick: () => void; loading: boolean; text: string; }> = ({ onClick, loading, text }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="bg-green-500 text-white py-4 px-4 rounded focus:outline-none focus:bg-green-600 w-full mt-8 text-center items-center"
+      disabled={loading}
+    >
+      {loading ? (
+        <svg className="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V2.5A1.5 1.5 0 0113.5 1h-1A1.5 1.5 0 0011 2.5V4a8 8 0 01-4 6.928"
+          ></path>
+        </svg>
+      ) : (
+        text
+      )}
+    </button>
+  );
+};
