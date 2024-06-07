@@ -6,7 +6,7 @@ import TableResult from './components/TableResult';
 
 export default function PriceCalculator() {
   const [values, setValues] = useState<FormValues>({
-    nilaiTukarUSD: 16285.25,
+    nilaiTukarUSD: 0,
     hargaSapiCIF: 0,
     beratSapi: 0,
     beaMasuk: 0,
@@ -28,26 +28,16 @@ export default function PriceCalculator() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    // Parse the value to a number, ignoring leading and trailing spaces
-    let parsedValue: number = parseFloat(value);
-
-    // Check if the parsed value is a valid number and not NaN
-    if (!isNaN(parsedValue)) {
-      setValues({
-        ...values,
-        [name]: parsedValue,
-      });
-    } else {
-      setValues({
-        ...values,
-        [name]: 0,
-      });
-    }
+    setValues({
+      ...values,
+      [name]: value,
+    })
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsloading(true);
+    console.log(values)
     setTimeout(() => {
       const data = {
         "Nilai Tukar USD. Ke Rp": values.nilaiTukarUSD,
@@ -72,7 +62,7 @@ export default function PriceCalculator() {
       setResults(data)
       setSubmitted(true)
       setIsloading(false)
-    }, 3000)
+    }, 1000)
   };
 
   useEffect(() => {
@@ -84,67 +74,88 @@ export default function PriceCalculator() {
       <div className="flex flex-wrap mb-4">
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="nilaiTukarUSD" className="block text-gray-700 font-bold">Nilai Tukar USD (Rp)</label>
-          <input type="number" name="nilaiTukarUSD" id="nilaiTukarUSD" value={values.nilaiTukarUSD} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input
+            type="number"
+            name="nilaiTukarUSD"
+            id="nilaiTukarUSD"
+            value={values.nilaiTukarUSD}
+            onChange={handleChange}
+            className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black"
+            placeholder='0'
+            pattern="\d*"
+          />
         </div>
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="hargaSapiCIF" className="block text-gray-700 font-bold">Harga Sapi (CIF)</label>
-          <input type="number" name="hargaSapiCIF" id="hargaSapiCIF" value={values.hargaSapiCIF} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="hargaSapiCIF" id="hargaSapiCIF" value={values.hargaSapiCIF} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="beratSapi" className="block text-gray-700 font-bold">Berat Sapi (Kg.)</label>
-          <input type="number" name="beratSapi" id="beratSapi" value={values.beratSapi} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="beratSapi" id="beratSapi" value={values.beratSapi} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
       </div>
       <div className="flex flex-wrap mb-4">
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="beaMasuk" className="block text-gray-700 font-bold">Bea Masuk (%)</label>
-          <input type="number" name="beaMasuk" id="beaMasuk" value={values.beaMasuk} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="beaMasuk" id="beaMasuk" value={values.beaMasuk} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="pph" className="block text-gray-700 font-bold">PPH (%)</label>
-          <input type="number" name="pph" id="pph" value={values.pph} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="pph" id="pph" value={values.pph} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
       </div>
       <div className="flex flex-wrap mb-4">
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="biayaImport" className="block text-gray-700 font-bold">Biaya Import (Rp./Ekor)</label>
-          <input type="number" name="biayaImport" id="biayaImport" value={values.biayaImport} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="biayaImport" id="biayaImport" value={values.biayaImport} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="lamaPemeliharaan" className="block text-gray-700 font-bold">Lama Pemeliharaan (hari)</label>
-          <input type="number" name="lamaPemeliharaan" id="lamaPemeliharaan" value={values.lamaPemeliharaan} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="lamaPemeliharaan" id="lamaPemeliharaan" value={values.lamaPemeliharaan} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
       </div>
       <div className="flex flex-wrap mb-4">
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="biayaPemeliharaan" className="block text-gray-700 font-bold">Biaya Pemeliharaan (Rp/ekor/hari)</label>
-          <input type="number" name="biayaPemeliharaan" id="biayaPemeliharaan" value={values.biayaPemeliharaan} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="biayaPemeliharaan" id="biayaPemeliharaan" value={values.biayaPemeliharaan} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="pertambahanBerat" className="block text-gray-700 font-bold">Pertambahan Berat Badan</label>
-          <input type="number" name="pertambahanBerat" id="pertambahanBerat" value={values.pertambahanBerat} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="pertambahanBerat" id="pertambahanBerat" value={values.pertambahanBerat} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
       </div>
       <div className="flex flex-wrap mb-4">
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="tingkatBungaBank" className="block text-gray-700 font-bold">Tingkat Bunga Bank (% /Tahun)</label>
-          <input type="number" name="tingkatBungaBank" id="tingkatBungaBank" value={values.tingkatBungaBank} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="tingkatBungaBank" id="tingkatBungaBank" value={values.tingkatBungaBank} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
       </div>
       <div className="flex flex-wrap mb-4">
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="biayaOverHead" className="block text-gray-700 font-bold">Biaya Over Head (Rp./Ekor)</label>
-          <input type="number" name="biayaOverHead" id="biayaOverHead" value={values.biayaOverHead} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="biayaOverHead" id="biayaOverHead" value={values.biayaOverHead} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="biayaMarketing" className="block text-gray-700 font-bold">Biaya Marketing (Rp./Ekor)</label>
-          <input type="number" name="biayaMarketing" id="biayaMarketing" value={values.biayaMarketing} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="biayaMarketing" id="biayaMarketing" value={values.biayaMarketing} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
       </div>
       <div className="flex flex-wrap mb-4">
         <div className="w-full px-2 mb-4 md:mb-0 my-4">
           <label htmlFor="hargaJualSapi" className="block text-gray-700 font-bold">Harga Jual Sapi (Rp./Kg)</label>
-          <input type="number" name="hargaJualSapi" id="hargaJualSapi" value={values.hargaJualSapi} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" />
+          <input type="number" name="hargaJualSapi" id="hargaJualSapi" value={values.hargaJualSapi} onChange={handleChange} className="form-input mt-1 block w-full border border-1 rounded-md px-4 py-2 border-black" placeholder='0'
+            pattern="\d*" />
         </div>
       </div>
       <LoadingButton onClick={() => { handleSubmit }} loading={isLoading} text='Kalkulasi' />
@@ -152,7 +163,7 @@ export default function PriceCalculator() {
   }
 
   const Results = () => {
-    return <div className="bg-white p-8 rounded shadow-md flex flex-col gap-8">
+    return <div className="bg-white p-8 rounded shadow-md flex flex-col gap-8 max-w-md">
       <h2 className="text-2xl font-semibold mb-4">Aplikasi Proyeksi Harga Pokok</h2>
       <TableResult data={results} />
       <LoadingButton onClick={() => {
